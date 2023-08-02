@@ -1,0 +1,275 @@
+1.javascript synchronous? async-await?
+the JavaScript engine executes our program sequentially, one line at a time from top to bottom in the exact order of the statements.
+sequentially and async-await:
+const timerPromise = (timeInterval) => new Promise((resolve)=>{
+setTimeout(()=>{
+resolve();
+},timeInterval)
+})
+
+function asynch(){
+timerPromise(1000)
+.then(()=> {console.log("A"); return timerPromise(2000);})
+.then(()=> {console.log("B"); return timerPromise(3000);})
+.then(()=> {console.log("C");})
+.catch(()=>{})
+.finally(()=>{})
+
+console.log("ended asynch")
+}
+
+
+
+
+async function runLogic(){
+await timerPromise(1000);
+console.log("AA")
+await timerPromise(2000);
+console.log("BB")
+await timerPromise(3000);
+console.log("CC");
+
+console.log("Ended sync")
+}
+
+runLogic();
+
+2.Callback queue
+The Callback queue is a data structure that operates on the FIFO (first-in-first-out) principle. Callback functions that need to be asynchronously executed, are pushed onto the callback queue. These are later pushed to the Call stack to be executed (when the event loop finds an empty call stack).
+
+function myDisplayer(some) {
+  document.getElementById("demo").innerHTML = some;
+}
+
+function myCalculator(num1, num2) {
+  let sum = num1 + num2;
+  myDisplayer(sum);
+}
+
+myCalculator(5, 5);
+
+3.generator?
+Generator function in javascript is used to generate values. It returns a generator object. These functions are written with function* syntax. The yield keyword is used within the generator is used to pause and resume the execution of code.
+
+ex:
+
+// generator function
+function* generatorFunc() {
+
+    console.log("1. code before the first yield");
+    yield 100;
+    
+   console.log("2. code before the second yield");
+    yield 200;
+}
+
+// returns generator object
+const generator = generatorFunc();
+
+console.log(generator.next());
+
+
+4.What does Web API return?
+the Web API controller returns HttpResponseMessage object.
+Extensible Markup Language (XML)
+JavaScript Object Notation (JSON)
+
+5.try...catch vs throw 
+`try...catch` is used to handle errors that occur during the execution of code, while `throw` is used to manually trigger an error.
+
+6.What is currying in JavaScript?
+Currying in JavaScript is a process in functional programming in which you can transform a function with multiple arguments into a sequence of nesting functions.
+ function volume(length) {
+      return function(width) {
+         return function(height) {
+            return height * width * length;
+         }
+      }
+   }
+document.write(volume(11)(2)(3))
+
+6.promises?
+https://www.freecodecamp.org/news/javascript-async-await-tutorial-learn-callbacks-promises-async-await-by-making-icecream/
+    Pending.
+    Fulfilled.
+    Rejected.
+EX:
+//Given 0 orders
+//When we get new order
+//Process Immediatly
+
+//Given X orders
+//When we get new order
+//Check any existing order is in progress
+//If in progress , add new order to the queue
+//Wait for the existing order to complete
+//Check Icecream Flavors If available take next order
+// cancel all pending orders
+
+//No Material
+//When we get new order
+//Reject order
+
+//Enough material
+
+/* class Crud {
+  items;
+  constructor(initialItems = []) {
+    this.items = initialItems;
+  }
+  add = (newItem) => {
+    this.items.push(newItem);
+  };
+  remove = (id) => {
+    const index = this.items.findIndex((item) => item.id === id);
+    this.items.splice(index, 1);
+  };
+  update = ({ id, changes }) => {
+    const index = this.items.findIndex((item) => item.id === id);
+    const newItem = { ...this.items[index], ...changes };
+    this.items[index] = newItem;
+  };
+  getFirst = () => {
+    return this.items[0];
+  };
+} */
+
+const uuid = require("uuid");
+
+function Crud(initialItems = []) {
+  let items = initialItems;
+  const add = (newItem) => {
+    items.push(newItem);
+  };
+  const clear = () => (items = []);  
+  const remove = (id) => {
+    const index = items.findIndex((item) => item.id === id);
+    items.splice(index, 1);
+  };
+  const update = ({ id, changes }) => {
+    const index = items.findIndex((item) => item.id === id);
+    const newItem = { ...items[index], ...changes };
+    items[index] = newItem;
+  };
+  const getAll = () => items;
+
+  const getFirstByCondition = (condition) => {
+    const itemIndex = items.findIndex((item) => {
+      for (key in condition) {
+        if (item[key] !== condition[key]) {
+          return false;
+        }
+      }
+      return true;
+    });
+    if (itemIndex >= 0) {
+      return items[itemIndex];
+    } else {
+      return null;
+    }
+  };
+
+  const getFirst = () => {
+    return items[0];
+  };
+  const count = () => items.length;
+  return {
+    add,
+    remove,
+    update,
+    getFirst,
+    count,
+    getAll,
+    getFirstByCondition,
+    clear,
+  };
+}
+
+function cancelAllPendingOrders() {
+  return "Sorry! Come Again!!";
+}
+
+function OrderProcessManager(order) {
+  currentOrderId = order.id;
+
+  //seyya thodangu
+  orderManager.update({
+    id: currentOrderId,
+    changes: { status: Status.PROCESSING },
+  });
+
+  //deliver aanadhu sollu
+  const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      orderManager.update({
+        id: currentOrderId,
+        changes: { status: Status.DELIVERED },
+      });
+
+      console.log("order processed", currentOrderId);
+      material = material - materialPerOrder;
+      resolve();
+    }, 2000);
+  });
+
+  //deliver aachaanu watch pannikittu iru
+  promise.then(() => {
+    //porul illana kadiaya saathu
+    if (material < materialPerOrder) {
+      cancelAllPendingOrders();
+    }
+    //adutha order irukkaanu paaru
+    const nextOrder = orderManager.getFirstByCondition({
+      status: Status.PLACED,
+    });
+
+    //irundha process pannu
+    if (nextOrder) {
+      OrderProcessManager(nextOrder);
+    } else {
+      //illana kaiya saathu
+      currentOrderId = "";
+      console.log("All orders processed");
+    }
+  });
+}
+
+const orderManager = Crud();
+let material = 3000;
+const materialPerOrder = 100;
+let currentOrderId = "";
+
+const Status = {
+  PLACED: 0,
+  PROCESSING: 1,
+  DELIVERED: 2,
+};
+
+function placeOrder() {
+  //Porul illana kelambu
+  if (material < materialPerOrder) {
+    return "CLOSED";
+  }
+
+  //Porul irundhaa order uruvakku
+  const id = uuid.v4();
+  const order = { id: id, status: Status.PLACED };
+  orderManager.add(order);
+
+  //endha orderum illana vandha pudhu  olungaa mudichu kodu
+  //Given no orders are pending && have enough material , When we get new order
+  if (material >= materialPerOrder && currentOrderId === "") {
+    OrderProcessManager(order);
+  }
+
+  //Given some order is pending && have enough material , When we get new order
+}
+
+//Test Case
+//GIVEN
+orderManager.clear();
+material = 2000;
+//When
+for (i = 0; i < 6; i++) {
+  placeOrder();
+}
